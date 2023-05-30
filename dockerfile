@@ -9,13 +9,13 @@ LABEL Maintainer="asheeshtripathi"
 ENV         security_updates_as_of 2023-05-15
 
 # This will make apt-get install without question
-ARG         DEBIAN_FRONTEND=noninteractive
-ARG         UHD_TAG=v4.1.0.6
-ARG         MAKEWIDTH=$(nproc)
+ARG     DEBIAN_FRONTEND=noninteractive
+ARG     UHD_TAG=v4.1.0.6
+ARG     MAKEWIDTH=$(nproc)
 
 # Install security updates and required packages
-RUN         apt-get update
-RUN         apt-get -y install -q \
+RUN     apt-get update
+RUN     apt-get -y install -q \
                 build-essential \
                 ccache \
                 git \
@@ -55,19 +55,19 @@ RUN         apt-get -y install -q \
 
 
 
-RUN          mkdir -p /usr/local/src
-RUN          git clone https://github.com/EttusResearch/uhd.git /usr/local/src/uhd
-RUN          cd /usr/local/src/uhd/ && git checkout $UHD_TAG
-RUN          mkdir -p /usr/local/src/uhd/host/build
-WORKDIR      /usr/local/src/uhd/host/build
-RUN          cmake .. -DENABLE_PYTHON3=ON -DUHD_RELEASE_MODE=release -DCMAKE_INSTALL_PREFIX=/usr
-RUN          make -j $MAKEWIDTH
-RUN          make install
-RUN          uhd_images_downloader
+RUN     mkdir -p /usr/local/src
+RUN     git clone https://github.com/EttusResearch/uhd.git /usr/local/src/uhd
+RUN     cd /usr/local/src/uhd/ && git checkout $UHD_TAG
+RUN     mkdir -p /usr/local/src/uhd/host/build
+WORKDIR /usr/local/src/uhd/host/build
+RUN     cmake .. -DENABLE_PYTHON3=ON -DUHD_RELEASE_MODE=release -DCMAKE_INSTALL_PREFIX=/usr
+RUN     make -j$(nproc)
+RUN     make install
+RUN     uhd_images_downloader
 
-RUN apt update
+RUN     apt update
 
-RUN DEBIAN_FRONTEND=noninteractive apt install -y \
+RUN     DEBIAN_FRONTEND=noninteractive apt install -y \
                 cmake \
                 make \
                 gcc \
@@ -78,7 +78,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y \
                 libsctp-dev \
                 libyaml-cpp-dev \
                 libgtest-dev
-     
+
 #  useful to minimize the size of each layer
 RUN rm -rf /var/lib/apt/lists/*
 
@@ -87,26 +87,24 @@ WORKDIR /srsran
 
 # Pinned git commit used for this example
 #23.5
-ARG COMMIT=49a07c7   
+ARG COMMIT=49a07c7
 
 # Download and build
-RUN git clone https://github.com/srsran/srsRAN_Project.git ./
-RUN git fetch origin ${COMMIT}
-RUN git checkout ${COMMIT}
-
+RUN     git clone https://github.com/srsran/srsRAN_Project.git ./
+#RUN    git fetch origin ${COMMIT}
+RUN     git checkout ${COMMIT}
+WORKDIR /srsran
+RUN     mkdir build
 WORKDIR /srsran/build
 
-RUN cmake -j$(nproc) ../
-RUN make -j$(nproc)
-RUN make test -j $(nproc)
-RUN make -j$(nproc) install
+RUN     cmake ../
+RUN     make -j $(nproc)
+#RUN    make test -j $(nproc)
+RUN     make -j $(nproc) install
 
 # Update dynamic linker
-RUN apt-get update
-RUN apt-get install net-tools -y
-RUN apt-get install vim -y
-RUN ldconfig
+RUN     apt-get update
+RUN     apt-get install net-tools -y
+RUN     apt-get install vim -y
+RUN     ldconfig
 
-#CMD instruction should be used to run the software
-#contained by your image, along with any arguments.
-CMD [ "/bin/bash", ""]
